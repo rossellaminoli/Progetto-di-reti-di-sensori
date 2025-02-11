@@ -19,7 +19,7 @@ torch.backends.cudnn.benchmark = True
 
 def main():
     path = "data" #percorso della directory dove si trova il dataset, dove si trovano i miei file
-    k = 3 #numero di fold per la validazione incrociata K-fold
+    k = 5 #numero di fold per la validazione incrociata K-fold
     window_size = 1 #Dimensione della finestra di tempo (in secondi) utilizzata per il preprocessing dei dati
     #creazione del modulo dei dati -> modulo personalizzato per gestire caricamento dati da file csv
     sampling_frequency=60#Hz

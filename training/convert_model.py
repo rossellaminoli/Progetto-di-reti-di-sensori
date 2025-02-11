@@ -7,7 +7,7 @@ def load_model(fold):
         f"{model_path}",
         input_dim=60,
         fold=fold,
-        classes_names=["sitting", "walking"]
+        classes_names=["cycling", "standing", "skipping"]
     ).to("cpu")
     model.eval()
     return model

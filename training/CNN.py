@@ -11,7 +11,7 @@ from utils.utility import cm_analysis
 #rete CNN, c'è una fase di pre-processing
 class CNN(pl.LightningModule):
 
-    def __init__(self, input_dim, fold, classes_names, output_dim=2, learning_rate=1e-3):
+    def __init__(self, input_dim, fold, classes_names, output_dim=3, learning_rate=1e-3):#output_dim=3 per le 3 azioni
         super(CNN, self).__init__() #chiama il costruttore della super classe
         self.name = "CNN" #nome del modello
         self.classes_labels = classes_names #etichette delle classi
@@ -55,7 +55,6 @@ class CNN(pl.LightningModule):
 
     def forward(self, x):
         #x input con dimensioni: (batch size, d_model, length)
-        # x = x.view(-1, self.input_dim, self.window_size)
         x = self.conv1(x)
 
         #view viene usata per rimodellare x in una matrice bidimensionale
@@ -68,7 +67,6 @@ class CNN(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch #Un singolo batch di dati, generalmente un tuple (x, y) dove x sono i dati di input e y sono le etichette corrispondenti.
         y_hat = self(x) #ottiene le predizioni
-        #y = torch.tensor(y, dtype=torch.long) if isinstance(y, np.ndarray) else y #
         loss = self.compute_loss(y_hat, y) #calcola la perdita
         # Log training loss
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True) #registra la perdita di addestramento
@@ -78,7 +76,7 @@ class CNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        #y = torch.tensor(y, dtype=torch.long) if isinstance(y, np.ndarray) else y #
+        loss = self.compute_loss(y_hat, y)
         val_loss = self.compute_loss(y_hat, y)#perdita di validazione
         self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
@@ -109,7 +107,6 @@ class CNN(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        #y = torch.tensor(y, dtype=torch.long) if isinstance(y, np.ndarray) else y#
         test_loss = self.compute_loss(y_hat, y) #perdita di test
         self.log("test_loss", test_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 

@@ -1,12 +1,5 @@
 #classe del mio thingy
 
-#cosa ci deve essere nella relazione:
-#introduzione che dice cosa voglio riconoscere
-#metodologia -> parte che descrive com'è fatta la nostra applicazione, descrizione del codice, immaginare di raccontarlo a una perosna che poi possa replicarlo
-#discussione dei risultati -> riportiamo esito, matrice di confusione e risultato migliore che abbiamo ottenuto e li commentiamo in senso critico
-#
-#posso fare 3 main, nella mia classe ho tutto quello che mi serve per collezionare dati, fare il training e fare l'interferenza
-
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -22,20 +15,12 @@ import onnxruntime as ort
 import numpy as np
 
 
-#creo una mia classe e la faccio derivare da BleakClient, prendo tutte le cose di BleakClient e ci aggiungo quelle che mi servono
-#il self mi indica la classe stessa, se faccio self. accedo a dei valori/metodi della classe
-#super chiama la classe superiore cioè BleakClient
-#quando modifico un metodo della classe padre si dice che sto facendo un overhead della classe padre
-
-#devo aggiungere il modello
+#classe derivata da BleakClient, prendo tutte le cose definite in BleakClient e ci aggiungo quelle che mi servono
 
 #dentro la classe ho 3 parti:
 #-parte relazionata con il sensore -> di ricezione dei dati inerziali(receive_inertial_data)
 #-salvataggio dati
 #-fase d'inferenza, mi calcolo un modello per inferire i dati
-
-#todo da fare: andare nel main e specificare cosa vogliamo fare, se ricevere solo dati o fare anche una classificazione:
-#inserisco path_to_model: str=None e poi dico se path=None non vado a istanziare nessun modello
 
 class Thingy52Client(BleakClient):
 
@@ -43,22 +28,26 @@ class Thingy52Client(BleakClient):
         super().__init__(device)
         self.mac_address = device.address
 
-        #self.model = ort.InferenceSession('training/CNN_60.onnx')
-        #self.classes = ["cycling", "skipping", "standing"]
+        #Utilizzo questa parte di codice per implementare la fase di test
+        self.model = ort.InferenceSession('training/CNN_60.onnx')
+        self.classes = ["cycling", "standing", "skipping"]
 
+        """
+        #Utilizzo questa parte di codice quando faccio la raccolta dei dati
         self.buffer_size = 1_000
         self.data_buffer = {"x": [], "y": [], "z": []}
+        """
 
-        """
         # Data buffer
-        self.buffer_size = 6
+        self.buffer_size = 60
         self.data_buffer = []
-        """
+
 
         #Recording information
         self.recording_name=None #nome del file in cui registro i dati
         self.file=None #puntatore a un file aperto, mando il file alla open e la open gli assegna un numero
 
+#funzione che si connette al dispositivo
     async def connect(self, **kwargs) -> bool:
         """
         Connect to the Thingy52 device
@@ -76,7 +65,7 @@ class Thingy52Client(BleakClient):
             print(f"Failed to connect to {self.mac_address}")
             return False
 
-
+#funzione che si disconette dal dispositivo
     async def disconnect(self) -> bool:
         """
         Disconnect from the Thingy52 device
@@ -157,7 +146,8 @@ class Thingy52Client(BleakClient):
         # Update the data buffer
         # Controlla se la lunghezza del buffer per x supera o è uguale a buffer_size.
         # Se sì, rimuove(con pop) il primo elemento (più vecchio) dalle liste x, y e z per fare spazio ai nuovi dati.
-
+        """
+        #Utilizzo questa parte di codice nella fase di raccolta dei dati
         if len(self.data_buffer["x"]) >= self.buffer_size:
             self.data_buffer["x"].pop(0)
             self.data_buffer["y"].pop(0)
@@ -169,9 +159,9 @@ class Thingy52Client(BleakClient):
         #Utilizza una formatted string(f - string) per stampare i dati dell'accelerometro in un formato leggibile.
         print(f"\r{self.mac_address} | {receive_time} - Accelerometer: X={acc_x: 2.3f}, Y={acc_y: 2.3f}, Z={acc_z: 2.3f}",
             end="", flush=True)
-
         """
-        # Update the data buffer
+
+        # Update the data buffer, utilizzo questa parte di codice nella fase di test
         if len(self.data_buffer) == self.buffer_size:
             input_data = np.array(self.data_buffer, dtype=np.float32).reshape(1, self.buffer_size, 6)
             input_ = self.model.get_inputs()[0].name
@@ -180,4 +170,4 @@ class Thingy52Client(BleakClient):
             self.data_buffer.clear()
 
         self.data_buffer.append([acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z])
-        """
+
